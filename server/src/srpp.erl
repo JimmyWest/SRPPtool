@@ -1,7 +1,9 @@
--module('SRPP').
+-module(srpp).
 
--export([main/1]).
+-export([main/2]).
 
-main(WD) ->
-    io:format("WorkingDir ~p~n",[WD]).
+main(WD,Port) ->
+    log:info(["SRPP server started!"]),
+    log:info(["Reading files from ",WD]),
+    log:info(["Listening on port ",Port]).
 
