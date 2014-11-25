@@ -18,7 +18,11 @@ info(Msg) ->
     log(info, Msg).
 
 debug(Info, Msg) ->
-    log(debug, Info, Msg).
+    case ?debug of
+	true ->
+	    log(debug, Info, Msg);
+	_ -> ok
+    end.
 debug(Msg) ->
     case ?debug of
 	true ->
@@ -26,6 +30,7 @@ debug(Msg) ->
 	_ ->
 	    ok
     end.
+
 err(Info,Msg) ->
     log(error,Info,Msg).
 err(Msg) ->
@@ -47,9 +52,15 @@ recv_loop() ->
 	{log, Type, Msg} ->
 	    log_data(Type, Msg),
 	    recv_loop();
-	{log, Type, Info, Msg} ->
-	    log_data(Type, [Info,", "|Msg]),
+	{log, debug, Info, Msg} ->
+	    log_data(debug, [Info,", "|Msg]),
 	    recv_loop();
+	{log, error, Info, Msg} ->
+	    log_data(error, [Info,", "|Msg]),
+	    recv_loop();
+	{log, Type, _, Msg} ->
+	    log_data(Type, Msg),
+	    recv_loop_end();
 	stop ->
 	    recv_loop_end()
     end.
@@ -59,8 +70,11 @@ recv_loop_end() ->
 	{log, Type, Msg} ->
 	    log_data(Type, Msg),
 	    recv_loop_end();
-	{log, Type, Info, Msg} ->
-	    log_data(Type, [Info|Msg]),
+	{log, debug, Info, Msg} ->
+	    log_data(debug, [Info,", "|Msg]),
+	    recv_loop_end();
+	{log, Type, _, Msg} ->
+	    log_data(Type, Msg),
 	    recv_loop_end()
     after 0 -> ok
     end.
