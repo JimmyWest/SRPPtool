@@ -1,6 +1,6 @@
 -module(common).
 
--export([safe_register/2, send_sync/2, send/2, response/1, receive_msg/1, reply/2]).
+-export([safe_register/2, mfa/3, send_singleton/3, send_sync/2, send/2, response/1, receive_msg/1, reply/2]).
 
 safe_register(Name, Pid) ->
     case erlang:whereis(Name) of
@@ -10,6 +10,20 @@ safe_register(Name, Pid) ->
 	     P ! stop
     end,
     erlang:register(Name,Pid).
+
+mfa(Module,Function,Arguments) ->
+    {Module,Function,Arguments}.
+
+send_singleton(Name, {M,F,A}, Msg) ->
+    Pid = case whereis(Name) of
+	      undefined ->
+		  P = M:F(A),
+		  safe_register(Name, P),
+		  P;
+	      P ->
+		  P
+	  end,
+    Pid ! Msg.
 
 send_sync(Pid, Msg) ->
     Ref = send(Pid, Msg),
@@ -37,8 +51,9 @@ receive_msg(Timeout) ->
 	{msg, Pid, Ref, Msg} ->
 	    {Msg, {Pid,Ref}}
     after Timeout ->
-	    {timeout,undefined}
+	    {timeout, undefined}
     end.
 
+reply(undefined, _) -> ok;
 reply({Pid,Ref}, Msg) ->
     Pid ! {response, Ref, Msg}.
