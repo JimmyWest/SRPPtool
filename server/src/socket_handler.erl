@@ -1,6 +1,6 @@
 -module(socket_handler).
 
--export([start/1]).
+-export([start/2]).
 
 start(Socket, Client) ->
     spawn(fun() -> init(Socket, Client) end).
@@ -14,7 +14,7 @@ recv_loop(Socket, Client) ->
     case gen_tcp:recv(Socket, 0) of
 	{ok, B} ->
 	    Msg = parse_message(B),
-	    client_handler:socket_message(Client, Msg),
+	    client_handler:socket_message(Client, Socket, Msg),
 	    recv_loop(Socket, Client);
 	{error, Reason} ->
 	    failure_recovery(Reason, Socket, Client)
@@ -28,3 +28,5 @@ failure_recovery(Reason, Socket, Client) ->
     client_handler:socket_closed(Client),
     gen_tcp:close(Socket).
 
+parse_message(B) ->
+    B.
