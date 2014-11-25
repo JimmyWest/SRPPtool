@@ -1,12 +1,15 @@
 -module(file_controller).
 
--export([start/2]).
+-export([start/2, stop/1]).
 -export([add_line/3, update_line/3, remove_line/2, get_line/2, save/1, close/1]).
 
 -record(state, {file, clienthandler}).
 
 start(Path,Filename) ->
     spawn(fun() -> init(Path,Filename) end).
+
+stop(Pid) ->
+    send_msg(Pid, stop).
 
 init(Path, Filename) ->
     File = file_data:open(Path,Filename),
@@ -65,6 +68,7 @@ recv_loop(State) ->
 	    common:reply(Com, Res),
 	    recv_loop(State);
 	stop ->
+	    common:reply(Com, stopped),
 	    ok;
 	close ->
 	    Res = file_data:close(State#state.file),
