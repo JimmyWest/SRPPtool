@@ -15,7 +15,7 @@ mfa(Module,Function,Arguments) ->
     {Module,Function,Arguments}.
 
 send_singleton(Name, {M,F,A}, Msg) ->
-    Pid = case whereis(Name) of
+    Pid = case erlang:whereis(Name) of
 	      undefined ->
 		  P = M:F(A),
 		  safe_register(Name, P),
@@ -23,15 +23,16 @@ send_singleton(Name, {M,F,A}, Msg) ->
 	      P ->
 		  P
 	  end,
-    Pid ! Msg.
+    Pid ! Msg,
+    ok.
 
-send_sync(Pid, Msg) ->
-    Ref = send(Pid, Msg),
+send_sync(Destination, Msg) ->
+    Ref = send(Destination, Msg),
     response(Ref).
 
-send(Pid, Msg) ->
+send(Destination, Msg) ->
     Ref = make_ref(),    
-    Pid ! {msg, self(), Ref, Msg},
+    Destination ! {msg, self(), Ref, Msg},
     Ref.
 
 response(Ref) ->
