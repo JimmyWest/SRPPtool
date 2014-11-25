@@ -5,6 +5,8 @@
 
 -record(file, {path, name, io, data}).
 
+-include("config.hrl").
+
 open(Path, Filename) ->
     {ok, IoDevice} = file:open(Path++Filename,[read,write]),
     read_file(#file{path=Path, name=Filename, io=IoDevice}).
@@ -29,7 +31,9 @@ save(#file{io=IoDevice, data=Data}) ->
 
 pack_data(Data) ->
     Data2 = lists:flatten(Data),
-    list_to_binary(crlf(Data2, [])).
+    Bin = list_to_binary(crlf(Data2, [])),
+    ?log_debug(["Packed file, size=",size(Bin),", data=",Bin]),
+    Bin.
 
 crlf([],L) -> lists:reverse(L); 
 crlf([13,10|T], L) ->
