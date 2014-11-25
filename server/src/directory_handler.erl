@@ -1,8 +1,10 @@
 -module(directory_handler).
 
--export([start/0, start/1]).
+-export([start/0, start/1, stop/0]).
 
 -include("config.hrl").
+
+-record(file, {id,dir,name,info,controller}).
 
 -record(file_info, {
 	  size,
@@ -28,6 +30,9 @@ start(WorkingDirectory) ->
     Pid = spawn(fun() -> init(WorkingDirectory) end),
     common:safe_register(directory_handler, Pid).
 
+stop() ->
+    common:safe_send_sync(directory_handler, stop).
+
 init(WorkingDirectory) ->
     case file:set_cwd(WorkingDirectory) of
 	{error, Reason} ->
@@ -40,9 +45,15 @@ init(WorkingDirectory) ->
 init() ->
     Files = new(),
     Structure = fetch_files(Files, "."),
-    ?log_debug(["Structure:\r\n",Structure]),
-    AllFiles = all_files(Files,ets:first(Files),[]),
-    ?log_debug(["Files:\r\n"]++AllFiles).
+    case ?debug of
+	true ->
+	    ?log_debug(["Structure:\r\n",Structure]),
+	    AllFiles = all_files(Files,ets:first(Files),[]),
+	    ?log_debug(["Files:\r\n"]++AllFiles);
+	_ -> ok
+    end,
+    ?log_info(["Files and directories lists loaded."]),
+    recv_loop(Files, Structure).
 
 all_files(Files, Key, List) ->
     ?log_debug(["+"]),
@@ -86,7 +97,58 @@ parse_content(Files, Structure, Dir, [Entity|Content]) ->
 new() ->
     ets:new(files, [ordered_set]).
 
+delete(Files) ->
+    ets:delete(Files).
+
 add_file(Files, Dir, Name, Info) ->
     ID = make_ref(),
-    ets:insert(Files, {ID, Dir, Name, Info}),
+    File = #file{id=ID, dir=Dir, name=Name, info=Info},
+    ets:insert(Files, {ID, File}),
     ID.
+
+update_file(Files, ID, File) ->
+    ets:insert(Files, {ID, File}).
+
+lookup(Files, ID) ->
+    case ets:lookup(Files, ID) of
+	[] -> undefined;
+	[File] -> File;
+	List -> hd(List)
+    end.
+
+set_controller(Files, File = #file{id=ID}, Controller) ->
+    File1 = File#file{controller=Controller},
+    update_file(Files, ID, File1).
+
+
+get_controller(Files, ID) ->
+    case lookup(Files, ID) of
+	File = #file{dir=Dir, name=Name, controller=undefined} ->
+	    C = file_controller:start(Dir,Name),
+	    set_controller(Files, File, C),
+	    C;
+	#file{controller=C} -> C;
+	File ->
+	    ?log_error(["Wierd file in Files. File: ", File]),
+	    undefined
+    end.
+
+recv_loop(Files, Structure) ->
+    {Msg, Com} = common:receive_msg(unlimited),
+    case Msg of
+	{subscribe, ID} ->
+	    Client = common:get_pid_from_com(Com),
+	    Controller = subscribe(Files, Client, ID),
+	    common:reply(Com, Controller),
+	    recv_loop(Files, Structure);
+	stop ->
+	    delete(Files),
+	    common:reply(Com, stopped);
+	Msg ->
+	    ?log_debug(["Got wierd message: ",Msg]),
+	    recv_loop(Files, Structure)
+    end.
+
+subscribe(Files, Client, ID) ->
+    Controller = get_controller(Files, ID),
+    file_controller:subscribe(Controller, Client).
