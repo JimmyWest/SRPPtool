@@ -36,7 +36,7 @@ loop(ListenSocket) ->
 listen_loop(ListenSocket) ->
     case gen_tcp:accept(ListenSocket, ?ACCEPT_TIMEOUT) of
 	{ok, Socket} ->
-	    socket_handler:start(Socket),
+	    client_handler:start(Socket),
 	    loop(ListenSocket);
 	{error, Reason} ->
 	    failure_recovery(Reason, ListenSocket)
