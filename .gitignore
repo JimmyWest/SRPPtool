@@ -1,3 +1,6 @@
+# Emacs temp files ignore
 *~
 *#*
+
+# Erlang specific ignores
 *.beam
