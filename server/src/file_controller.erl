@@ -1,9 +1,9 @@
 -module(file_controller).
 
 -export([start/2, stop/1]).
--export([add_line/3, update_line/3, remove_line/2, get_line/2, save/1, close/1]).
+-export([subscribe/2, add_line/3, update_line/3, remove_line/2, get_line/2, save/1, close/1]).
 
--record(state, {file, clienthandler}).
+-record(state, {file, subscribers=[]}).
 
 start(Path,Filename) ->
     spawn(fun() -> init(Path,Filename) end).
@@ -13,13 +13,13 @@ stop(Pid) ->
 
 init(Path, Filename) ->
     File = file_data:open(Path,Filename),
-    ClientHandler = ok,%client_handler:start(),
-    State = #state{
-	       file=File,
-	       clienthandler=ClientHandler},
+    State = #state{file=File},
     recv_loop(State).
 
 %% ### External API
+
+subscribe(Pid, Client) ->
+    send_msg(Pid, {subscribe, Client}).
 
 add_line(Pid, N, Line) ->
     send_msg(Pid, {add_line, N, Line}).
@@ -47,6 +47,10 @@ send_msg(Pid, Msg) ->
 recv_loop(State) ->
     {Msg,Com} = common:receive_msg(unlimited),
     case Msg of
+	{subscribe, Client} ->
+	    State1 = add_subscriber(State, Client),
+	    common:reply(Com, self()),
+	    recv_loop(State1);
 	{add_line, N, Line} ->
 	    File = file_data:add_line(Line,N,State#state.file),
 	    common:reply(Com, ok),
@@ -75,3 +79,7 @@ recv_loop(State) ->
 	    common:reply(Com, Res),
 	    ok
     end.
+
+add_subscriber(State = #state{file=File, subscribers=Subscribers}, Client) ->
+    %% send file copy to new subcriber.
+    State#state{subscribers=[Client|Subscribers]}.
