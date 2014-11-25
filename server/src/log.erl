@@ -1,12 +1,44 @@
 -module(log).
 
--export([info/1, debug/1, err/1]).
+-export([start/1, info/1, debug/1, err/1]).
+
+-include("config.hrl").
+
+start(_) ->
+    Pid = spawn(fun() -> init() end),
+    common:safe_register(logger, Pid),
+    Pid.
+
+
+init() ->
+    recv_loop().
+
+recv_loop() ->
+    receive
+	{log, Type, Msg} ->
+	    log_data(Type, Msg),
+	    recv_loop();
+	stop ->
+	    recv_loop_end()
+    end.
+
+recv_loop_end() ->
+    receive
+	{log, Type, Msg} ->
+	    log_data(Type, Msg),
+	    recv_loop_end()
+    after 0 -> ok
+    end.
 
 log_data(Type, Msg) when is_list(Msg) ->
     print_info(),
     case Type of
 	info ->
 	    print_ln(["I: "|Msg]);
+	error ->
+	    print_ln(["E: "|Msg]);
+	debug ->
+	    print_ln(["DEBUG: "|Msg]);
 	_ ->
 	    print_ln([Type,": "|Msg])
     end;
@@ -40,10 +72,18 @@ print([H|T]) ->
     print(T).
 
 info(Info) ->
-    log_data(info, Info).
+    log(info, Info).
 
 debug(Info) ->
-    log_data(debug, Info).
+    case ?debug of
+	true ->
+	    log(debug, Info);
+	_ ->
+	    ok
+    end.
 
 err(Info) ->
-    log_data(error, Info).
+    log(error, Info).
+
+log(Type, Msg) ->
+   common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, Msg}).
