@@ -8,6 +8,14 @@
 start(Path,Filename) ->
     spawn(fun() -> init(Path,Filename) end).
 
+init(Path, Filename) ->
+    File = file_data:open(Path,Filename),
+    ClientHandler = ok,%client_handler:start(),
+    State = #state{
+	       file=File,
+	       clienthandler=ClientHandler},
+    recv_loop(State).
+
 %% ### External API
 
 add_line(Pid, N, Line) ->
@@ -28,16 +36,10 @@ save(Pid) ->
 close(Pid) ->
     send_msg(Pid, close).
 
+%% ### Internal functions
+
 send_msg(Pid, Msg) ->
     common:send_sync(Pid, Msg).
-
-init(Path, Filename) ->
-    File = file_data:open(Path,Filename),
-    ClientHandler = ok,%client_handler:start(),
-    State = #state{
-	       file=File,
-	       clienthandler=ClientHandler},
-    recv_loop(State).
 
 recv_loop(State) ->
     {Msg,Com} = common:receive_msg(unlimited),
