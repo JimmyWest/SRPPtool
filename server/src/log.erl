@@ -5,11 +5,12 @@
 -include("config.hrl").
 
 start(_) ->
-    Pid = spawn(fun() -> init() end),
-    Pid.
+    spawn(fun() -> init() end).
 
 stop() ->
     logger ! stop.
+
+%% API functions
 
 info(Info, Msg) ->
     log(info, Info, Msg).
@@ -29,6 +30,8 @@ err(Info,Msg) ->
     log(error,Info,Msg).
 err(Msg) ->
     log(error, Msg).
+
+%% Internal functions
 
 log(Type, Info, Msg) ->
     common:send_singleton(looger, common:mfa(log,start,[]), {log, Type, Info, Msg}).
