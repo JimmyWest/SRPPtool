@@ -33,6 +33,9 @@ start(WorkingDirectory) ->
 stop() ->
     common:safe_send_sync(directory_handler, stop).
 
+subscribe(ID) ->
+    common:send_sync(directory_handler, {subscribe, ID}).
+
 init(WorkingDirectory) ->
     case file:set_cwd(WorkingDirectory) of
 	{error, Reason} ->
@@ -138,7 +141,7 @@ recv_loop(Files, Structure) ->
     case Msg of
 	{subscribe, ID} ->
 	    Client = common:get_pid_from_com(Com),
-	    Controller = subscribe(Files, Client, ID),
+	    Controller = subscribe_to_file(Files, Client, ID),
 	    common:reply(Com, Controller),
 	    recv_loop(Files, Structure);
 	stop ->
@@ -149,6 +152,6 @@ recv_loop(Files, Structure) ->
 	    recv_loop(Files, Structure)
     end.
 
-subscribe(Files, Client, ID) ->
+subscribe_to_file(Files, Client, ID) ->
     Controller = get_controller(Files, ID),
     file_controller:subscribe(Controller, Client).
