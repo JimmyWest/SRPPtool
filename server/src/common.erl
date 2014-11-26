@@ -29,17 +29,20 @@ send_singleton(Name, {M,F,A}, Msg) ->
 safe_send_sync(Dest, Msg) ->
     case isalive(Dest) of
 	fasle ->
-	    Ref = echo(stopped),
-	    response(Ref);
-	_ ->
+	    {error, stopped};
+	noprocref ->
+	    {error, noprocref};
+	true ->
 	    send_sync(Dest, Msg)
     end.
 
 safe_send(Dest, Msg) ->
     case isalive(Dest) of
 	false ->
-	    echo(stopped);
-	_ ->
+	    echo({error, stopped});
+	noprocref ->
+	    echo({error, noprocref});
+	true ->
 	    send(Dest, Msg)
     end.
 
@@ -56,7 +59,7 @@ isalive(Dest) when is_pid(Dest) ->
 	_ -> true
     end;
 isalive(_) ->
-    false.
+    noprocref.
 
 echo(Msg) ->
     Ref = make_ref(),
