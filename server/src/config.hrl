@@ -24,6 +24,9 @@
 -define(LOG_TYPE_INFO, {info, "\033[39;49m", "I"}).
 -define(log_info(Msg), ?LOG_MACRO(?LOG_TYPE_INFO, Msg)).
 
+-define(LOG_TYPE_LOAD, {load, "\033[96;2m","Loading"}).
+-define(log_load(Msg), ?LOG_MACRO(?LOG_TYPE_LOAD, Msg)).
+
 %%-define(log_error(Msg), ?LOG_MACRO_legacy(err,Msg)).
 -define(LOG_TYPE_ERROR, {error, "\033[97;101;1m","E"}).
 -define(log_error(Msg), ?LOG_MACRO(?LOG_TYPE_ERROR, Msg)).

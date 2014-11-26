@@ -206,8 +206,10 @@ print([H|T]) ->
 %% Test logger
 
 test() ->
-    ?log_info(["This is a info test"]),
-    ?log_error(["This is a error test"]),
-    ?log_debug(["This is a debug test"]),
-    ?log_heavydebug(["This is a heavy debug test"]),
-    ?log_wierd(["This is a wierd test"]).
+    Line = ["String: This is, ",auto,", ",23,{"this",number}],
+    ?log_info(Line),
+    ?log_load(Line),
+    ?log_error(Line),
+    ?log_debug(Line),
+    ?log_heavydebug(Line),
+    ?log_wierd(Line).
