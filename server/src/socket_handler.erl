@@ -1,13 +1,20 @@
 -module(socket_handler).
 
--export([start/2]).
+-export([start/2, response/3]).
 
 start(Socket, Client) ->
     spawn(fun() -> init(Socket, Client) end).
 
+response(Socket, error, Msg) ->
+    ok;
+response(Socket, update, Msg) ->
+    ok;
+response(Socket, Type, Msg) ->
+    ok.
+
 init(Socket, Client) ->
     log:info(["New connection initialized ..."]),
-    erlang:monitor(process,Client),
+    % erlang:monitor(process,Client),
     recv_loop(Socket, Client).
 
 recv_loop(Socket, Client) ->
