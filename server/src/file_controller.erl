@@ -42,7 +42,7 @@ close(Pid) ->
 %% ### Internal functions
 
 send_msg(Pid, Msg) ->
-    common:send_sync(Pid, Msg).
+    common:safe_send_sync(Pid, Msg).
 
 recv_loop(State) ->
     {Msg,Com} = common:receive_msg(unlimited),
