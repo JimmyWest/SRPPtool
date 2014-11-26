@@ -88,7 +88,8 @@ log_data(Conf = #conf{structure=Structure}, Type, Info, Msg) ->
     case isvalid(Conf, Type, Info) of
 	true ->
 	    Line = build_log(Structure, Type, Info, Msg),
-	    print_nl(Line);
+	    Format = build_format(Line,[]),
+	    io:format(Format,Line);
 	_ -> ok
     end.
 
@@ -132,6 +133,8 @@ build_log([line|Struct], Type, Info = {_,N}, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [N|Line]);
 build_log([type|Struct], Type = {_,_,T}, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [T|Line]);
+build_log([self|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [self()|Line]);
 build_log([msg|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, Msg++Line);
 build_log([boc|Struct], Type = {_,Color,_}, Info, Msg, Line) ->
@@ -177,14 +180,21 @@ z(V) when V < 10 ->
 z(V) ->
     V.
 
-print_nl([]) ->
-    io:format("~n");
-print_nl([H|T]) when is_list(H) ->
-    io:format("~s",[H]),
-    print_nl(T);
-print_nl([H|T]) ->
-    io:format("~p",[H]),
-    print_nl(T).
+build_format([], Line) ->
+    Line++"~n";
+build_format([H|T], Line) when is_list(H) ->
+    build_format(T, Line++"~s"); % String
+build_format([_|T], Line) ->
+    build_format(T,Line++"~p").
+
+%% print_nl([]) ->
+%%     io:format("~n");
+%% print_nl([H|T]) when is_list(H) ->
+%%     io:format("~s",[H]),
+%%     print_nl(T);
+%% print_nl([H|T]) ->
+%%     io:format("~p",[H]),
+%%     print_nl(T).
 
 print_ln(Data, Color) -> % Legacy
     print(Data),
@@ -206,7 +216,7 @@ print([H|T]) ->
 %% Test logger
 
 test() ->
-    Line = ["String: This is, ",auto,", ",23,{"this",number}],
+    Line = ["String: This is, ",auto,", ",23," end of line!"],
     ?log_start(Line),
     ?log_info(Line),
     ?log_load(Line),

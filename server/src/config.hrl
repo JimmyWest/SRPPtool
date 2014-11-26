@@ -3,7 +3,7 @@
 -define(debug, true).
 -define(DEFAULT_MODULES, all).
 -define(DEFAULT_TYPES, all).
--define(LOG_STRUCTURE, [boc,"[",date,"-",time,"]{",module,":",line,"}",type,": ",msg,eoc]).
+-define(LOG_STRUCTURE, [self,":",boc,"[",date,"-",time,"]{",module,":",line,"}",type,": ",msg,eoc]).
 -define(DATE_SEP, "").
 -define(TIME_SEP, "").
 -define(DATE_TIME_SEP, "-").
@@ -21,7 +21,7 @@
 -define(LOG_MACRO(Type,Msg), log:log(Type, ?LOG_ML, Msg)).
 
 %%-define(log_info(Msg), ?LOG_MACRO_legacy(info,Msg)).
--define(LOG_TYPE_START, {start, "\033[90;107;1m","S"}).
+-define(LOG_TYPE_START, {start, "\033[90;107;1m","Start"}).
 -define(log_start(Msg), ?LOG_MACRO(?LOG_TYPE_START, Msg)).
 
 -define(LOG_TYPE_INFO, {info, "\033[39;49m", "I"}).
@@ -35,10 +35,10 @@
 -define(log_error(Msg), ?LOG_MACRO(?LOG_TYPE_ERROR, Msg)).
 
 %%-define(log_debug(Msg), ?LOG_MACRO_legacy(debug,Msg)).
--define(LOG_TYPE_DEBUG, {debug, "\033[92;1m","DEBUG"}).
+-define(LOG_TYPE_DEBUG, {debug, "\033[92;1m","D"}).
 -define(log_debug(Msg), ?LOG_MACRO(?LOG_TYPE_DEBUG, Msg)).
 
--define(LOG_TYPE_HEAVY_DEBUG, {heavydebug, "\033[91;1m","HDEBUG"}).
+-define(LOG_TYPE_HEAVY_DEBUG, {heavydebug, "\033[91;1m","HD"}).
 -define(log_heavydebug(Msg), ?LOG_MACRO(?LOG_TYPE_HEAVY_DEBUG,Msg)).
 
 -define(LOG_TYPE_WIERD, {wierd, "\033[95m","WIERD"}).
