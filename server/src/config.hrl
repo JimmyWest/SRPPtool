@@ -21,6 +21,9 @@
 -define(LOG_MACRO(Type,Msg), log:log(Type, ?LOG_ML, Msg)).
 
 %%-define(log_info(Msg), ?LOG_MACRO_legacy(info,Msg)).
+-define(LOG_TYPE_START, {start, "\033[90;107;1m","S"}).
+-define(log_start(Msg), ?LOG_MACRO(?LOG_TYPE_START, Msg)).
+
 -define(LOG_TYPE_INFO, {info, "\033[39;49m", "I"}).
 -define(log_info(Msg), ?LOG_MACRO(?LOG_TYPE_INFO, Msg)).
 

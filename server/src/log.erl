@@ -207,6 +207,7 @@ print([H|T]) ->
 
 test() ->
     Line = ["String: This is, ",auto,", ",23,{"this",number}],
+    ?log_start(Line),
     ?log_info(Line),
     ?log_load(Line),
     ?log_error(Line),
