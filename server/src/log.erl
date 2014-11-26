@@ -112,7 +112,7 @@ isvalid_type(#conf{types=Types}, {Type,_,_}) ->
 	_ -> lists:member(Type,Types)
     end.
 
-isvalid_info(#conf{modules=Modules}, {Module,_}) ->
+isvalid_info(#conf{modules=Modules}, {Module,_,_}) ->
     case Modules of
 	all -> true;
 	_ -> lists:member(Module,Modules)
@@ -127,14 +127,16 @@ build_log([date|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, date_data()++Line);
 build_log([time|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, time_data()++Line);
-build_log([module|Struct], Type, Info = {Module,_}, Msg, Line) ->
+build_log([module|Struct], Type, Info = {Module,_,_}, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [Module|Line]);
-build_log([line|Struct], Type, Info = {_,N}, Msg, Line) ->
+build_log([line|Struct], Type, Info = {_,_,N}, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [N|Line]);
 build_log([type|Struct], Type = {_,_,T}, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [T|Line]);
 build_log([self|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [self()|Line]);
+build_log([pid|Struct], Type, Info = {_,Pid,_}, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [Pid|Line]);
 build_log([msg|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, Msg++Line);
 build_log([boc|Struct], Type = {_,Color,_}, Info, Msg, Line) ->
@@ -216,7 +218,7 @@ print([H|T]) ->
 %% Test logger
 
 test() ->
-    Line = ["String: This is, ",auto,", ",23," end of line!"],
+    Line = ["This is, ",auto,", ",23," end of line!"],
     ?log_start(Line),
     ?log_info(Line),
     ?log_load(Line),

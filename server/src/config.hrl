@@ -3,7 +3,7 @@
 -define(debug, true).
 -define(DEFAULT_MODULES, all).
 -define(DEFAULT_TYPES, all).
--define(LOG_STRUCTURE, [self,":",boc,"[",date,"-",time,"]{",module,":",line,"}",type,": ",msg,eoc]).
+-define(LOG_STRUCTURE, [boc,"[",date,"-",time,"]{",module,"(",pid,"):",line,"}",type,": ",msg,eoc]).
 -define(DATE_SEP, "").
 -define(TIME_SEP, "").
 -define(DATE_TIME_SEP, "-").
@@ -16,9 +16,9 @@
 -define(END_COLOR, "\033[0m").
 
 % Logger use of other modules
--define(LOG_ML, {?MODULE, ?LINE}).
+-define(LOG_MPL, {?MODULE, self(), ?LINE}).
 %%-define(LOG_MACRO_legacy(Type,Msg), log:Type(?LOG_ML, Msg)).
--define(LOG_MACRO(Type,Msg), log:log(Type, ?LOG_ML, Msg)).
+-define(LOG_MACRO(Type,Msg), log:log(Type, ?LOG_MPL, Msg)).
 
 %%-define(log_info(Msg), ?LOG_MACRO_legacy(info,Msg)).
 -define(LOG_TYPE_START, {start, "\033[90;107;1m","Start"}).
