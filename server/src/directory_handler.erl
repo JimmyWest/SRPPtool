@@ -1,6 +1,6 @@
 -module(directory_handler).
 
--export([start/0, start/1, stop/0]).
+-export([start/0, start/1, stop/0, subscribe/1]).
 
 -include("config.hrl").
 
