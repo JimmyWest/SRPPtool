@@ -1,8 +1,10 @@
 -module(log).
 
--export([start/1, stop/0, info/2, info/1, debug/2, debug/1, err/2, err/1]).
+-export([test/0, start/1, stop/0, log/3, info/2, info/1, debug/2, debug/1, err/2, err/1]).
 
 -include("config.hrl").
+
+-record(conf, {modules=[], types=[], structure=[]}).
 
 start(_) ->
     spawn(fun() -> init() end).
@@ -10,7 +12,7 @@ start(_) ->
 stop() ->
     logger ! stop.
 
-%% API functions
+%% API functions (Legacy)
 
 info(Info, Msg) ->
     log(info, Info, Msg).
@@ -36,31 +38,34 @@ err(Info,Msg) ->
 err(Msg) ->
     log(error, Msg).
 
-%% Internal functions
+%% Only one API function
 
 log(Type, Info, Msg) ->
-    common:send_singleton(looger, common:mfa(log,start,[]), {log, Type, Info, Msg}).
+    common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, Info, Msg}).
 
-log(Type, Msg) ->
-    common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, Msg}).
+log(Type, Msg) -> % Legacy
+    common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, {unknown,0}, Msg}).
 
 init() ->
-    recv_loop().
+    recv_loop(default_conf()).
 
-recv_loop() ->
+default_conf() ->
+    #conf{modules=?DEFAULT_MODULES, types=?DEFAULT_TYPES, structure=?LOG_STRUCTURE}.
+
+recv_loop(Conf) ->
     receive
-	{log, Type, Msg} ->
+	{log, Type, Msg} -> % legacy
 	    log_data(Type, Msg),
-	    recv_loop();
-	{log, debug, Info, Msg} ->
-	    log_data(debug, [Info,", "|Msg]),
-	    recv_loop();
-	{log, error, Info, Msg} ->
-	    log_data(error, [Info,", "|Msg]),
-	    recv_loop();
-	{log, Type, _, Msg} ->
-	    log_data(Type, Msg),
-	    recv_loop_end();
+	    recv_loop(Conf);
+%	{log, debug, Info, Msg} ->
+%	    log_data(debug, [Info,", "|Msg]),
+%	    recv_loop(Conf);
+%	{log, error, Info, Msg} ->
+%	    log_data(error, [Info,", "|Msg]),
+%	    recv_loop(Conf);
+	{log, Type, Info, Msg}  ->
+	    log_data(Conf, Type, Info, Msg),
+	    recv_loop(Conf);
 	stop ->
 	    recv_loop_end()
     end.
@@ -79,7 +84,64 @@ recv_loop_end() ->
     after 0 -> ok
     end.
 
-log_data(Type, Msg) when is_list(Msg) ->
+log_data(Conf = #conf{structure=Structure}, Type, Info, Msg) ->
+    case isvalid(Conf, Type, Info) of
+	true ->
+	    Line = build_log(Structure, Type, Info, Msg),
+	    print_nl(Line);
+	_ -> ok
+    end.
+
+isvalid(Conf, Type, Info) ->
+    case isvalid_type(Conf, Type) of
+	true ->
+	    case isvalid_info(Conf, Info) of
+		true ->
+		    true;
+		_ ->
+		    false
+	    end;
+	_ ->
+	    false
+    end.
+
+isvalid_type(#conf{types=Types}, {Type,_,_}) ->
+    case Types of
+	all -> true;
+	_ -> lists:member(Type,Types)
+    end.
+
+isvalid_info(#conf{modules=Modules}, {Module,_}) ->
+    case Modules of
+	all -> true;
+	_ -> lists:member(Module,Modules)
+    end.
+
+build_log(Struct, Type, Info, Msg) ->
+    build_log(lists:reverse(Struct), Type, Info, Msg, []).
+
+build_log([], _, _, _, Line) ->
+    Line;
+build_log([date|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, date_data()++Line);
+build_log([time|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, time_data()++Line);
+build_log([module|Struct], Type, Info = {Module,_}, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [Module|Line]);
+build_log([line|Struct], Type, Info = {_,N}, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [N|Line]);
+build_log([type|Struct], Type = {_,_,T}, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [T|Line]);
+build_log([msg|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, Msg++Line);
+build_log([boc|Struct], Type = {_,Color,_}, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [Color|Line]);
+build_log([eoc|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [?END_COLOR|Line]);
+build_log([H|Struct], Type, Info, Msg, Line) ->
+    build_log(Struct, Type, Info, Msg, [H|Line]).
+
+log_data(Type, Msg) when is_list(Msg) -> % Legacy
     print_info(),
     case Type of
 	info ->
@@ -102,13 +164,29 @@ print_date() ->
     {H,Mi,S} = time(),
     print(["[",Y,?DATE_SEP,z(M),?DATE_SEP,z(D),?DATE_TIME_SEP,z(H),?TIME_SEP,z(Mi),?TIME_SEP,z(S),"]"]).
 
+date_data() ->
+    {Y,M,D} = date(),
+    [Y,?DATE_SEP,z(M),?DATE_SEP,z(D)].
+
+time_data() ->
+    {H, M, S} = time(),
+    [H,?TIME_SEP,M,?TIME_SEP,S].
+
 z(V) when V < 10 ->
     "0" ++ integer_to_list(V);
 z(V) ->
     V.
 
+print_nl([]) ->
+    io:format("~n");
+print_nl([H|T]) when is_list(H) ->
+    io:format("~s",[H]),
+    print_nl(T);
+print_nl([H|T]) ->
+    io:format("~p",[H]),
+    print_nl(T).
 
-print_ln(Data, Color) ->
+print_ln(Data, Color) -> % Legacy
     print(Data),
     case Color of
 	true->
@@ -124,3 +202,12 @@ print([H|T]) when is_list(H) ->
 print([H|T]) ->
     io:format("~p",[H]),
     print(T).
+
+%% Test logger
+
+test() ->
+    ?log_info(["This is a info test"]),
+    ?log_error(["This is a error test"]),
+    ?log_debug(["This is a debug test"]),
+    ?log_heavydebug(["This is a heavy debug test"]),
+    ?log_wierd(["This is a wierd test"]).
