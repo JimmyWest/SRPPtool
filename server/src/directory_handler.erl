@@ -50,16 +50,15 @@ init() ->
     Structure = fetch_files(Files, "."),
     case ?debug of
 	true ->
-	    ?log_debug(["Structure:\r\n",Structure]),
+	    ?log_heavydebug(["Structure:\r\n",Structure]),
 	    AllFiles = all_files(Files,ets:first(Files),[]),
-	    ?log_debug(["Files:\r\n"]++AllFiles);
+	    ?log_heavydebug(["Files:\r\n"]++AllFiles);
 	_ -> ok
     end,
     ?log_info(["Files and directories lists loaded."]),
     recv_loop(Files, Structure).
 
 all_files(Files, Key, List) ->
-    ?log_debug(["+"]),
     case Key of
 	'$end_of_table' ->
 	    List;
@@ -77,6 +76,7 @@ fetch_files(Files, Dir) ->
 parse_content(_, Structure, _, []) ->
     Structure;
 parse_content(Files, Structure, Dir, [Entity|Content]) ->
+    ?log_load(["File ",Dir++Entity," ..."]),
     case file:read_file_info(Dir++Entity) of
 	{error, Reason} ->
 	    ?log_error(["Could not read file info of ",Dir++Entity,", due to: ",Reason]),

@@ -35,7 +35,8 @@ init_handle_socket_message(Socket, Msg) ->
     case Msg of
 	{openfile, ID} ->
 	    openfile(Socket, ID);
-	_ ->
+	Wierd ->
+	    ?log_wierd([Wierd]),
 	    ANSWER = "This is a test!",
 	    gen_tcp:send(Socket,"HTTP/1.1 200 OK\r\nContent-Length: "++integer_to_list(length(ANSWER))++"\r\n\r\n"++ANSWER),
 	    init_recv_loop(Socket)
@@ -66,7 +67,7 @@ recv_loop(Socket, Controller, ID) ->
 	    socket_handler:response(Socket, update, Change),
 	    recv_loop(Socket, Controller, ID);
 	Wierd ->
-	    ?log_debug(["Got weird message: ",Wierd]),
+	    ?log_wierd([Wierd]),
 	    recv_loop(Socket, Controller, ID)
     end.
 

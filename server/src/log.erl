@@ -1,6 +1,6 @@
 -module(log).
 
--export([test/0, start/1, stop/0, log/3, info/2, info/1, debug/2, debug/1, err/2, err/1]).
+-export([test/0, start/1, stop/0, log/3]).
 
 -include("config.hrl").
 
@@ -12,39 +12,10 @@ start(_) ->
 stop() ->
     logger ! stop.
 
-%% API functions (Legacy)
-
-info(Info, Msg) ->
-    log(info, Info, Msg).
-info(Msg) ->
-    log(info, Msg).
-
-debug(Info, Msg) ->
-    case ?debug of
-	true ->
-	    log(debug, Info, Msg);
-	_ -> ok
-    end.
-debug(Msg) ->
-    case ?debug of
-	true ->
-	    log(debug, Msg);
-	_ ->
-	    ok
-    end.
-
-err(Info,Msg) ->
-    log(error,Info,Msg).
-err(Msg) ->
-    log(error, Msg).
-
 %% Only one API function
 
 log(Type, Info, Msg) ->
     common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, Info, Msg}).
-
-log(Type, Msg) -> % Legacy
-    common:send_singleton(logger, common:mfa(log,start,[]), {log, Type, {unknown,0}, Msg}).
 
 init() ->
     recv_loop(default_conf()).
@@ -54,33 +25,18 @@ default_conf() ->
 
 recv_loop(Conf) ->
     receive
-	{log, Type, Msg} -> % legacy
-	    log_data(Type, Msg),
-	    recv_loop(Conf);
-%	{log, debug, Info, Msg} ->
-%	    log_data(debug, [Info,", "|Msg]),
-%	    recv_loop(Conf);
-%	{log, error, Info, Msg} ->
-%	    log_data(error, [Info,", "|Msg]),
-%	    recv_loop(Conf);
 	{log, Type, Info, Msg}  ->
 	    log_data(Conf, Type, Info, Msg),
 	    recv_loop(Conf);
 	stop ->
-	    recv_loop_end()
+	    recv_loop_end(Conf)
     end.
 
-recv_loop_end() ->
+recv_loop_end(Conf) ->
     receive
-	{log, Type, Msg} ->
-	    log_data(Type, Msg),
-	    recv_loop_end();
-	{log, debug, Info, Msg} ->
-	    log_data(debug, [Info,", "|Msg]),
-	    recv_loop_end();
-	{log, Type, _, Msg} ->
-	    log_data(Type, Msg),
-	    recv_loop_end()
+	{log, Type, Info, Msg}  ->
+	    log_data(Conf, Type, Info, Msg),
+	    recv_loop_end(Conf)
     after 0 -> ok
     end.
 
@@ -146,29 +102,6 @@ build_log([eoc|Struct], Type, Info, Msg, Line) ->
 build_log([H|Struct], Type, Info, Msg, Line) ->
     build_log(Struct, Type, Info, Msg, [H|Line]).
 
-log_data(Type, Msg) when is_list(Msg) -> % Legacy
-    print_info(),
-    case Type of
-	info ->
-	    print_ln([?INFO_COLOR, "I: "|Msg],true);
-	error ->
-	    print_ln([?ERROR_COLOR, "err: "|Msg], true);
-	debug ->
-	    print_ln([?DEBUG_COLOR, "DEBUG: "|Msg], true);
-	_ ->
-	    print_ln([Type,": "|Msg],false)
-    end;
-log_data(Type, Msg) ->
-    log_data(Type, [Msg]).
-
-print_info() ->
-    print_date().
-
-print_date() ->
-    {Y,M,D} = date(),
-    {H,Mi,S} = time(),
-    print(["[",Y,?DATE_SEP,z(M),?DATE_SEP,z(D),?DATE_TIME_SEP,z(H),?TIME_SEP,z(Mi),?TIME_SEP,z(S),"]"]).
-
 date_data() ->
     {Y,M,D} = date(),
     [Y,?DATE_SEP,z(M),?DATE_SEP,z(D)].
@@ -188,32 +121,6 @@ build_format([H|T], Line) when is_list(H) ->
     build_format(T, Line++"~s"); % String
 build_format([_|T], Line) ->
     build_format(T,Line++"~p").
-
-%% print_nl([]) ->
-%%     io:format("~n");
-%% print_nl([H|T]) when is_list(H) ->
-%%     io:format("~s",[H]),
-%%     print_nl(T);
-%% print_nl([H|T]) ->
-%%     io:format("~p",[H]),
-%%     print_nl(T).
-
-print_ln(Data, Color) -> % Legacy
-    print(Data),
-    case Color of
-	true->
-	    io:format("~s~n",[?END_COLOR]);
-	_ ->
-	    io:format("~n")
-    end.
-
-print([]) -> ok;
-print([H|T]) when is_list(H) ->
-    io:format("~s",[H]),
-    print(T);
-print([H|T]) ->
-    io:format("~p",[H]),
-    print(T).
 
 %% Test logger
 
