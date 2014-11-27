@@ -8,7 +8,13 @@ BEAMDIR=./build/bin
 
 all: 
 	@ mkdir -p $(BEAMDIR) ;
+	@ $(ERLC) -v -Werror $(ERLCFLAGS) $(BEAMDIR) -I $(INCDIR) $(SRCDIR)/*.erl ;
+	@ mkdir -p $(LOGDIR) ;
+
+kind:
+	@ mkdir -p $(BEAMDIR) ;
 	@ $(ERLC) -v $(ERLCFLAGS) $(BEAMDIR) -I $(INCDIR) $(SRCDIR)/*.erl ;
 	@ mkdir -p $(LOGDIR) ;
+
 clean: 
-	@ rm -rf $(BEAMDIR)
+	@ rm -rf ./build
