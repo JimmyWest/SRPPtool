@@ -4,3 +4,9 @@
 
 # Erlang specific ignores
 *.beam
+
+# Latex specific ignores
+*.aux
+*.dvi
+*.log
+*.pdf
