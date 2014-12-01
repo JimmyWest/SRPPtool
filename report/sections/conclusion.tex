@@ -1,0 +1,9 @@
+\section{Contributions and Conclusions}
+
+\subsection{Contributions}
+
+In this project, we have made it possible to securely pair programming remotely even if the connection used is unsecured by letting the application encrypt and decrypt all data sent by the server and the clients.
+
+\subsection{Conclusions}
+
+The SRPP is a collaborative software engineering approach where  two or more persons work remotely on a given task based on unsecured communication links as the communication are secured. Every client has a main communication to the server and one communication link for each file. A single DES and triple DES are the two types of encryption that have been used.  A single DES was used during the client and server connection. After that the client has been  established, the triple DES is the encryption that is used. Triple DES supports a pair of keys { ServerKey, ClientKey, ServerKey } for the main communication link and the key pair for each communication such as { ServerKey, ClientKey, FileKey }. They are generated using key password phrase which is known by the client. 
