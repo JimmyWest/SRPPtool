@@ -108,7 +108,7 @@ date_data() ->
 
 time_data() ->
     {H, M, S} = time(),
-    [H,?TIME_SEP,M,?TIME_SEP,S].
+    [z(H),?TIME_SEP,z(M),?TIME_SEP,z(S)].
 
 z(V) when V < 10 ->
     "0" ++ integer_to_list(V);
