@@ -35,7 +35,7 @@ loop(ListenSocket) ->
 
 listen_loop(ListenSocket) ->
     ?log_heavydebug(["Listening for new accepts ..."]),
-    case gen_tcp:accept(ListenSocket, ?ACCEPT_TIMEOUT) of
+    case gen_tcp:accept(ListenSocket) of
 	{ok, Socket} ->
 	    ?log_heavydebug(["New socket connection accepted by listener."]),
 	    client_handler:start(Socket),
