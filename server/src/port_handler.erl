@@ -25,7 +25,7 @@ loop(ListenSocket) ->
     case Msg of
 	stop ->
 	    gen_tcp:close(ListenSocket),
-	    common:reply(Com, ok),
+	    common:reply(Com, stopped),
 	    ?log_info(["Port Handler closed on command!"]),
 	    exit("Port Handler closed on command!");
 	timeout ->
@@ -35,7 +35,7 @@ loop(ListenSocket) ->
 
 listen_loop(ListenSocket) ->
     ?log_heavydebug(["Listening for new accepts ..."]),
-    case gen_tcp:accept(ListenSocket) of
+    case gen_tcp:accept(ListenSocket, ?ACCEPT_TIMEOUT) of
 	{ok, Socket} ->
 	    ?log_heavydebug(["New socket connection accepted by listener."]),
 	    client_handler:start(Socket),
