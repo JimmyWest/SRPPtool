@@ -1,9 +1,14 @@
 -module(srpp_server).
 
--export([start/2]).
+-export([start/3]).
 
-start(WD,Port) ->
-    log:info(["SRPP server started!"]),
-    log:info(["Reading files from ",WD]),
-    log:info(["Listening on port ",Port]).
+-include("config.hrl").
 
+start(WD,MainPort,FilePort) ->
+    ?log_info(["SRPP server started!"]),
+    ?log_info(["Reading files from ",WD]),
+    ?log_info(["Main listening on port ",MainPort]),
+    ?log_info(["File listening on port ",FilePort]),
+    directory_handler:start(WD),
+    port_handler:start(MainPort),
+    port_handler:start(FilePort).
