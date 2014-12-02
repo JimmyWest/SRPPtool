@@ -4,7 +4,7 @@ SRCDIR=./src
 INCFLAG=-I
 INCDIR=./include
 LOGDIR=./build/log
-BEAMDIR=./build/bin
+BEAMDIR=./build/ebin
 
 all: 
 	@ mkdir -p $(BEAMDIR) ;
