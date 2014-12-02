@@ -80,6 +80,6 @@ recv_loop(State) ->
 	    ok
     end.
 
-add_subscriber(State = #state{file=File, subscribers=Subscribers}, Client) ->
+add_subscriber(State = #state{subscribers=Subscribers}, Client) ->
     %% send file copy to new subcriber.
     State#state{subscribers=[Client|Subscribers]}.
