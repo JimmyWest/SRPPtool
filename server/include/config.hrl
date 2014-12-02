@@ -33,7 +33,7 @@
 -define(LOG_TYPE_DEBUG, {debug, "\033[92;1m","D"}).
 -define(log_debug(Msg), ?LOG_MACRO(?LOG_TYPE_DEBUG, Msg)).
 
--define(LOG_TYPE_HEAVY_DEBUG, {heavydebug, "\033[91;1m","HD"}).
+-define(LOG_TYPE_HEAVY_DEBUG, {heavydebug, "\033[93;1m","HD"}).
 -define(log_heavydebug(Msg), ?LOG_MACRO(?LOG_TYPE_HEAVY_DEBUG,Msg)).
 
 -define(LOG_TYPE_WIERD, {wierd, "\033[95m","WIERD"}).
