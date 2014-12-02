@@ -1,4 +1,11 @@
 %% ###############################
+%% General config
+-define(VERSION, "Version 0.1.1").
+-define(VERSION_TUPLE, {0,1,1}).
+-define(MAJOR_VERSION, "Major version 0").
+-define(MAJOR_VERSION_NUMBER, 0).
+
+%% ###############################
 %% Log Logger
 -define(debug, true).
 -define(DEFAULT_MODULES, all).
