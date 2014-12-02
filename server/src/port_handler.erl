@@ -18,7 +18,7 @@ init(Port) ->
 	    ?log_info(["Listening on port ",Port," for new connections."]),
 	    loop(ListenSocket);
 	{error, Reason} ->
-	    ?log_err(["Can't open listening socket on port ",Port,", due to: ",Reason])
+	    ?log_error(["Can't open listening socket on port ",Port,", due to: ",Reason])
     end.
 loop(ListenSocket) ->
     {Msg, Com} = common:receive_msg(0),
@@ -53,7 +53,7 @@ failure_recovery(timeout, ListenSocket) ->
 failure_recovery(system_limit, ListenSocket) ->
     cooldown(ListenSocket);
 failure_recovery(Reason, _) ->
-    ?log_err(["Can't recover from listen socket error: ",Reason,", I will die now!"]).
+    ?log_error(["Can't recover from listen socket error: ",Reason,", I will die now!"]).
 
 cooldown(ListenSocket) ->
     ?log_info(["Socket listener cooldown due to overload of sockets."]),
