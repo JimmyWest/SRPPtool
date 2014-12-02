@@ -11,14 +11,14 @@ stop(Pid) ->
     common:send_sync(Pid, stop).
 
 init(Port) ->
-    log:info(["Port Handler started, initializing handler..."]),
+    ?log_start(["Port Handler started, initializing handler..."]),
     common:safe_register(socket_handler,self()),
     case gen_tcp:listen(Port, ?GEN_TCP_CONF) of
 	{ok, ListenSocket} ->
-	    log:info(["Starts listen on port ",Port," for new connections."]),
+	    ?log_info(["Listening on port ",Port," for new connections."]),
 	    loop(ListenSocket);
 	{error, Reason} ->
-	    log:err(["Can't open listening socket on port ",Port,", due to: ",Reason])
+	    ?log_err(["Can't open listening socket on port ",Port,", due to: ",Reason])
     end.
 loop(ListenSocket) ->
     {Msg, Com} = common:receive_msg(0),
@@ -26,7 +26,7 @@ loop(ListenSocket) ->
 	stop ->
 	    gen_tcp:close(ListenSocket),
 	    common:reply(Com, ok),
-	    log:info(["Port Handler closed on command!"]),
+	    ?log_info(["Port Handler closed on command!"]),
 	    exit("Port Handler closed on command!");
 	timeout ->
 	    ok
@@ -45,7 +45,7 @@ listen_loop(ListenSocket) ->
     end.
 
 failure_recovery(closed, _) ->
-    log:info(["Socket closed, terminates listener in Port Handler"]),
+    ?log_info(["Socket closed, terminates listener in Port Handler"]),
     ok;
 failure_recovery(timeout, ListenSocket) ->
     ?log_heavydebug(["gen_tcp:accept(ListenSocket) timedout, retries ..."]),
@@ -53,10 +53,10 @@ failure_recovery(timeout, ListenSocket) ->
 failure_recovery(system_limit, ListenSocket) ->
     cooldown(ListenSocket);
 failure_recovery(Reason, _) ->
-    log:err(["Can't recover from listen socket error: ",Reason,", I will die now!"]).
+    ?log_err(["Can't recover from listen socket error: ",Reason,", I will die now!"]).
 
 cooldown(ListenSocket) ->
-    log:info(["Socket listener cooldown due to overload of sockets."]),
+    ?log_info(["Socket listener cooldown due to overload of sockets."]),
     receive
     after ?SOCKET_COOLDOWN_TIMEOUT -> loop(ListenSocket)
     end.
