@@ -37,17 +37,18 @@ subscribe(ID) ->
     common:send_sync(directory_handler, {subscribe, ID}).
 
 init(WorkingDirectory) ->
-    case file:set_cwd(WorkingDirectory) of
+    case file:read_file_info(WorkingDirectory) of
 	{error, Reason} ->
 	    ?log_error(["Directory handler could not be started, due to: ",Reason]);
-	ok ->
-	    ?log_info(["Directory handler started!"]),
-	    init()
+	{ok, #file_info{type=directory}} ->
+	    ?log_start(["Directory handler started!"]),
+	    ?log_info(["Loading directory: ",WorkingDirectory]),
+	    init_fetch(WorkingDirectory)
     end.
 
-init() ->
+init_fetch(WorkingDirectory) ->
     Files = new(),
-    Structure = fetch_files(Files, "."),
+    Structure = fetch_files(Files, WorkingDirectory),
     case ?debug of
 	true ->
 	    ?log_heavydebug(["Structure:\r\n",Structure]),
@@ -145,6 +146,7 @@ recv_loop(Files, Structure) ->
 	    common:reply(Com, Controller),
 	    recv_loop(Files, Structure);
 	stop ->
+	    ?log_info(["Directory handler ",self()," are stopped."]),
 	    delete(Files),
 	    common:reply(Com, stopped);
 	Msg ->
