@@ -1,6 +1,7 @@
 -module(crypt).
 
 -export([new/0, set_client_key/2, set_file_key/2, encrypt/2, decrypt/2]).
+-export([testing_des/1, testing_des3/1]).
 
 -include("config.hrl").
 
@@ -75,3 +76,48 @@ phrase_init([H|T], Num) ->
 phrase_convert([], Num) -> Num;
 phrase_convert([H|T],Num) ->
     phrase_convert(T, (H*Num + H)).
+
+%% Only for testing the DES
+
+testing_des(Size) ->
+    KeyRing = new(),
+    testing(KeyRing, Size).
+
+testing_des3(Size) ->
+    KeyRing = set_file_key(create_key("Filename",8),set_client_key(create_key("Client",8),new())),
+    testing(KeyRing,Size).
+
+testing(KeyRing, Size) ->
+    ?log_info(["Building PlainText"]),
+    Text = build("A",Size,""),
+    ?log_info(["Encrypting data ..."]),
+    C = encrypt(Text,KeyRing),
+    ?log_info(["Calculating frequency"]),
+    GB = gb_init(gb_trees:empty(),lists:seq(0,255)),
+    Freq = freq(binary:bin_to_list(C), GB),
+    ?log_info(["Printing result"]),
+    print_gb(gb_trees:to_list(Freq),0,Size/256).
+
+build(_,0,Text) -> Text;
+build([T],N,Text) ->
+    build([T],N-1,[T|Text]).
+
+gb_init(GB,[]) -> GB;
+gb_init(GB, [H|T]) ->
+    gb_init(gb_trees:enter(H,0,GB),T).
+
+freq([], GB) -> GB;
+freq([H|T], GB) ->
+    N = gb_trees:get(H,GB),
+    freq(T,gb_trees:enter(H,N+1,GB)).
+
+print_gb([],Diff,S) ->
+    Avg = Diff/265,
+    P = (Avg/S)*100,
+    io:format("Total diff: ~p, average ~p (~p %), S=~p~n",[Diff, Avg, P, S]);
+print_gb([{H,N}|T],D,S) ->
+    Diff = if N<S -> S-N;
+	    true -> N-S
+	   end,
+    io:format("~p: ~p (~p)~n",[H,N,Diff]),
+    print_gb(T,D+Diff,S).
