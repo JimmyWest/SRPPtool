@@ -14,9 +14,8 @@ set_server_key(KeyRing) ->
     dict:store(k1,ServerKey,KeyRing).
 
 get_server_key_arg() ->
-    {ok, [[ServerKeyPhrase, SSize]]} = init:get_argument(server_key),
-    {Size,_} = string:to_integer(SSize),
-    create_key(ServerKeyPhrase,Size).
+    {ok, [[ServerKeyPhrase]]} = init:get_argument(server_key),
+    create_key(ServerKeyPhrase,8).
     
 set_client_key(ClientKey, KeyRing) ->
     dict:store(k2,ClientKey, KeyRing).
