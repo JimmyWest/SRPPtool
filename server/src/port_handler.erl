@@ -10,8 +10,15 @@ start(Port) ->
 stop(Pid) ->
     common:send_sync(Pid, stop).
 
+init([P]) when is_list(P) ->
+    case string:to_integer(P) of
+	{error, Reason} ->
+	    ?log_error(["Parse port number error, due to ",Reason]);
+	{Port, _} ->
+	    init(Port)
+    end;
 init(Port) ->
-    ?log_start(["Port Handler started, initializing handler..."]),
+    ?log_start(["Started, initializing handler for port:",Port," ..."]),
     common:safe_register(socket_handler,self()),
     case gen_tcp:listen(Port, ?GEN_TCP_CONF) of
 	{ok, ListenSocket} ->
