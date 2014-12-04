@@ -39,7 +39,6 @@ block_encrypt(Type, Key, IVec, PlainText) ->
     ?log_heavydebug(["Encrypting ... \r\nPlainText=", PlainText, "\r\nWith type=",Type," Key=",Key]),
     crypto:block_encrypt(Type, Key, IVec, PlainText).
 
-
 decrypt(CipherText, KeyRing) ->
     Keys = dict:to_list(KeyRing),
     IVec = create_key(?MAJOR_VERSION,8),
@@ -56,25 +55,24 @@ block_decrypt(Type, Key, IVec, CipherText) ->
     ?log_heavydebug(["Decrypting ...\r\nCipherText=", CipherText, "\r\nWith type=",Type," Key=",Key]),
     crypto:block_decrypt(Type, Key, IVec, CipherText).
 
+%% Generate Key from a pass phrase
+
 create_key(Phrase,N) ->
-    Data = phrase_convert(Phrase,phrase_init(Phrase,N)),
-    create_key(Data, N,<<>>).
+    Hash = phrase_hash(Phrase,N),
+    ?log_info(["Hash = ",Hash]),
+    create_key(Phrase, Phrase, N, Hash,<<>>).
 
-create_key(_, 0,Key) -> Key;
-create_key(Data, N, Key) ->
-    KB = key_block(Data),
-    create_key(Data bsr 8, N-1, <<Key/binary, KB/binary>>).
+create_key(_,_,0,_,Key) -> Key;
+create_key([],Phrase,N,Hash,Key) ->
+    create_key(Phrase,Phrase,N,phrase_hash(Phrase,Hash),Key);
+create_key([H|T],Phrase,N,Hash,Key) ->
+    Val = (H*Hash rem 255),
+    ?log_info(["Val = ",Val]),
+    create_key(T,Phrase,N-1,Hash+H,<<Key/binary, Val:8>>).
 
-key_block(D) ->
-    <<D:1, (D bsr 1):1, (D bsr 2):1, (D bsr 3):1, (D bsr 4):1, (D bsr 5):1, (D bsr 6):1, (D bsr 7):1>>.
-
-phrase_init([],Num) -> Num;
-phrase_init([H|T], Num) -> 
-    phrase_init(T, H+Num).
-
-phrase_convert([], Num) -> Num;
-phrase_convert([H|T],Num) ->
-    phrase_convert(T, (H*Num + H)).
+phrase_hash([],Num) -> Num;
+phrase_hash([H|T], Num) -> 
+    phrase_hash(T, H+Num).
 
 %% Only for testing the DES
 
