@@ -17,7 +17,7 @@ update(Client, Change) ->
     common:send(Client, {update, Change}).
 
 init(Socket) ->
-    log:info(["Client Handler started!"]),
+    ?log_start(["Started!"]),
     socket_handler:start(Socket, self()),
     init_recv_loop(Socket).
 
