@@ -10,3 +10,7 @@
 *.dvi
 *.log
 *.pdf
+
+# Idea ignores
+.idea
+*.iml
