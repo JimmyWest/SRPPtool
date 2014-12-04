@@ -8,9 +8,21 @@
 %% ###############################
 %% Log Logger
 -define(debug, true).
--define(DEFAULT_MODULES, all).
+-define(DEFAULT_MODULES, [client_handler,socket_handler]).
 -define(DEFAULT_TYPES, all).
--define(LOG_STRUCTURE, [self,":",boc,"[",date,"-",time,"]{",module,"(",pid,"):",line,"}",type,": ",msg,eoc]).
+
+% Logging structure
+% self = loggers pid.
+% boc = Begining of color.
+% date = The date.
+% Time = The time.
+% module = The module name of the log caller.
+% pid = The pid of the log caller.
+% line = The line in code where the log message was called.
+% type = The type of log message.
+% msg = The log message it self.
+% eoc = The end of color.
+-define(LOG_STRUCTURE, [boc,time,"-",type,":{",module,":",line,"}: ",msg,eoc]).
 -define(DATE_SEP, "").
 -define(TIME_SEP, "").
 
@@ -51,3 +63,22 @@
 -define(GEN_TCP_CONF, [binary, {packet, 0}, {active, false}]).
 -define(ACCEPT_TIMEOUT, 1000).
 -define(SOCKET_COOLDOWN_TIMEOUT, 2000).
+
+
+%% ###############################
+%% TCP communication 
+-define(TCP_HEAD_CONNECT, 1).
+-define(TCP_HEAD_DISCONNECT, 2).
+
+% Main communication link
+-define(TCP_HEAD_FOLDER, 10).
+
+% File communication link
+-define(TCP_HEAD_FILE_EDIT, 100).
+-define(TCP_HEAD_FILE_SUBSCRIBE, 101).
+-define(TCP_HEAD_FILE_CONTENT, 110).
+-define(TCP_HEAD_LINE_UPDATE, 115).
+-define(TCP_HEAD_LINE_NEW, 112).
+-define(TCP_HEAD_LINE_REMOVE, 113).
+
+-define(TCP_HEAD_CURSORPOS, 200).
