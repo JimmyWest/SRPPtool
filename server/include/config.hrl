@@ -86,6 +86,8 @@
 % Response message
 -define(TCP_HEAD_OK, 200).
 -define(TCP_HEAD_ACK, 201).
+-define(TCP_HEAD_ACCEPT, 210).
+-define(TCP_HEAD_REJECT, 211).
 -define(TCP_HEAD_ERROR, 250).
 
 % Unknown message
