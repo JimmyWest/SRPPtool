@@ -1,7 +1,7 @@
 -module(crypt).
 
 -export([new/0, set_client_key/2, set_file_key/2, encrypt/2, decrypt/2]).
--export([testing_des/1, testing_des3/1]).
+-export([create_key/2, testing_des/1, testing_des3/1]).
 
 -include("config.hrl").
 
@@ -59,7 +59,6 @@ block_decrypt(Type, Key, IVec, CipherText) ->
 
 create_key(Phrase,N) ->
     Hash = phrase_hash(Phrase,N),
-    ?log_info(["Hash = ",Hash]),
     create_key(Phrase, Phrase, N, Hash,<<>>).
 
 create_key(_,_,0,_,Key) -> Key;
@@ -67,7 +66,6 @@ create_key([],Phrase,N,Hash,Key) ->
     create_key(Phrase,Phrase,N,phrase_hash(Phrase,Hash),Key);
 create_key([H|T],Phrase,N,Hash,Key) ->
     Val = (H*Hash rem 255),
-    ?log_info(["Val = ",Val]),
     create_key(T,Phrase,N-1,Hash+H,<<Key/binary, Val:8>>).
 
 phrase_hash([],Num) -> Num;
