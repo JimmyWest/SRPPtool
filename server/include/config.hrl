@@ -74,11 +74,20 @@
 -define(TCP_HEAD_FOLDER, 10).
 
 % File communication link
--define(TCP_HEAD_FILE_EDIT, 100).
+-define(TCP_HEAD_FILE_OPEN, 100).
 -define(TCP_HEAD_FILE_SUBSCRIBE, 101).
 -define(TCP_HEAD_FILE_CONTENT, 110).
--define(TCP_HEAD_LINE_UPDATE, 115).
--define(TCP_HEAD_LINE_NEW, 112).
--define(TCP_HEAD_LINE_REMOVE, 113).
+-define(TCP_HEAD_LINE_GET, 111).
+-define(TCP_HEAD_LINE_UPDATE, 120).
+-define(TCP_HEAD_LINE_NEW, 121).
+-define(TCP_HEAD_LINE_REMOVE, 122).
+-define(TCP_HEAD_CURSORPOS, 150).
 
--define(TCP_HEAD_CURSORPOS, 200).
+% Response message
+-define(TCP_HEAD_OK, 200).
+-define(TCP_HEAD_ACK, 201).
+-define(TCP_HEAD_ERROR, 250).
+
+% Unknown message
+-define(TCP_HEAD_UNKNOWN, 0).
+
