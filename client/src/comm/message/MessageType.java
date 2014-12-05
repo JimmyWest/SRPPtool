@@ -17,7 +17,7 @@ public enum MessageType {
     FILE_CURSOR_POS(150),
 
     // Response message types
-    OK(200), ACK(201), ERROR(250),
+    OK(200), ACK(201), ACCEPT(210), REJECT(211), ERROR(250),
 
     // Unknown Type
     UNKNOWN(0);
