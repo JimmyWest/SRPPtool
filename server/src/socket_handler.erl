@@ -49,23 +49,23 @@ parse_tcp_data(Data) ->
     ?log_heavydebug(["Data\r\n",Data]),
     case Data of
 	<<?TCP_HEAD_CONNECT:8, Id:8, 8:8, ClientKey:8/binary, _/binary>> ->
-	    [{connect, ClientKey}, {response, accept, "OK"}];
+	    [{connect, ClientKey}, {response, accept, {Id, "OK"}}];
 	<<?TCP_HEAD_DISCONNECT:8, Id:8, _/binary>> ->
 	    [{client,disconnect},close];
 	<<?TCP_HEAD_FOLDER:8, Id:8, _:8, FolderID:32, _/binary>> ->
-	    [{client, {folder, FolderID}}];
-	<<?TCP_HEAD_FILE_EDIT:8, Id:8, _:8, FileID:32, _/binary>> ->
-	    [{client, {open, FileID}}];
+	    [{client, {folder, Id, FolderID}}];
+	<<?TCP_HEAD_FILE_OPEN:8, Id:8, _:8, FileID:32, _/binary>> ->
+	    [{client, {open, Id, FileID}}];
 	<<?TCP_HEAD_FILE_SUBSCRIBE:8, Id:8, _:8, FileID:32, _/binary>> ->
-	    [{client, {subscribe, FileID}}];
+	    [{client, {subscribe, Id, FileID}}];
 	<<?TCP_HEAD_FILE_CONTENT:8, Id:8, _/binary>> ->
-	    [{client, content}];
+	    [{client, {content, Id}}];
 	<<?TCP_HEAD_LINE_UPDATE:8, Id:8, Length:8, LineNum:32, Line:Length/binary, _/binary>> ->
-	    [{client, {update, LineNum, Line}}];
+	    [{client, {update, Id, LineNum, Line}}];
 	<<?TCP_HEAD_LINE_NEW:8, Id:8, Length:8, LineNum:32, Line:Length/binary, _/binary>> ->
-	    [{client, {new_line, LineNum, Line}}];
+	    [{client, {new_line, Id, LineNum, Line}}];
 	<<?TCP_HEAD_LINE_REMOVE:8, Id:8, _:8, LineNum:32, _/binary>> ->
-	    [{client, {remove_line, LineNum}}]; 
+	    [{client, {remove_line, Id, LineNum}}]; 
 	_ ->
 	    ?log_wierd(["Unknown tcp message received"]),
 	    [{response, error, "ERROR"}, close]
