@@ -21,7 +21,6 @@ public class Key {
     private byte[] generateKey(String passPhrase){
         byte[] phrase = passPhrase.getBytes();
         int phraseHash = phraseHash(phrase, KEY_LENGTH);
-        System.out.println("Phrase hash = "+phraseHash);
         return generateKey(phrase, phraseHash);
     }
 
@@ -35,7 +34,6 @@ public class Key {
             }
             int ival = (phrase[p]*hash % 255);
             hash += phrase[p];
-            System.out.println(l+": "+ival);
             byte val = (byte) ival;
             key[l] = val;
             p++;

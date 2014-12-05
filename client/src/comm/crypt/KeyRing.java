@@ -3,6 +3,7 @@ package comm.crypt;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.security.NoSuchAlgorithmException;
@@ -14,11 +15,13 @@ import static comm.crypt.KeyRing.Mode.*;
  */
 public class KeyRing {
 
+
     public enum Mode {
         NONE,S,SCS,SCF
     }
 
     private Mode mode;
+    private IvParameterSpec iVec = new IvParameterSpec((new Key("Major version 0").getKey()));
     private Key serverKey = null;
     private Key clientKey = null;
     private Key fileKey = null;
@@ -32,6 +35,10 @@ public class KeyRing {
         if (fileKey == null) this.mode = SCS;
         if (clientKey == null) this.mode = S;
         if (serverKey == null) this.mode = NONE;
+    }
+
+    public IvParameterSpec getIVec() {
+        return iVec;
     }
 
     public void setServerKey(String phrase) {
