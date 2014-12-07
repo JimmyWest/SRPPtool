@@ -2,8 +2,10 @@ package comm.message.response;
 
 import comm.message.Message;
 import comm.message.MessageType;
-import comm.message.response.*;
-import comm.message.response.Error;
+import comm.message.response.file.FileKey;
+import comm.message.response.file.LineNew;
+import comm.message.response.file.LineRemove;
+import comm.message.response.file.LineUpdate;
 
 import java.util.Arrays;
 
@@ -53,7 +55,7 @@ public class MessageFactory {
             case 210:
                 message = new Accept(id);
                 break;
-            case 211:
+            case 252:
                 message = new Reject(id);
                 break;
             default:
@@ -73,8 +75,24 @@ public class MessageFactory {
     private static Message factory(int type, byte id, byte[] data) {
         Message message = null;
         switch (type) {
+            case 120:
+                message = new LineUpdate(id, data);
+                break;
+            case 121:
+                message = new LineNew(id, data);
+                break;
+            case 122:
+                message = new LineRemove(id, data);
+                break;
+            case 220:
+                message = new FileKey(id, data);
+                break;
             case 250:
                 message = new Error(id, data);
+                break;
+            case 251:
+                message = new ErrorNOID(data);
+                break;
         }
         return message;
     }
