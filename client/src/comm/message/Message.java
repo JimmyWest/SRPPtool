@@ -1,5 +1,7 @@
 package comm.message;
 
+import java.util.Arrays;
+
 /**
  * Created by jimmywest on 2014-12-04.
  */
@@ -35,6 +37,10 @@ public class Message {
         this.type = type;
     }
 
+    public MessageType getType() {
+        return type;
+    }
+
     public void setData(byte[] data) {
         // TODO: Add exception on length over 255.
         this.length = (byte)data.length;
@@ -45,7 +51,7 @@ public class Message {
         return id;
     }
 
-    public byte[] getMessage(){
+    public byte[] getPlainText(){
         int size = ((int)((3 + data.length)/8)+1)*8;
         byte[] msg = new byte[size];
         msg[0] = type.getCode();
@@ -53,6 +59,16 @@ public class Message {
         msg[2] = length;
         System.arraycopy(data,0,msg,3,length);
         return msg;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "type=" + type +
+                ", id=" + id +
+                ", length=" + length +
+                ", data=" + Arrays.toString(data) +
+                '}';
     }
 
 }
