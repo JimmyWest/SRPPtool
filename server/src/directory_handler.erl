@@ -6,6 +6,8 @@
 
 -record(file, {id,dir,name,info,controller}).
 
+-record(dir, {id,dir,name,structure,info}).
+
 -record(file_info, {
 	  size,
 	  type,
@@ -33,8 +35,8 @@ start(WorkingDirectory) ->
 stop() ->
     common:safe_send_sync(directory_handler, stop).
 
-subscribe(ID) ->
-    common:send_sync(directory_handler, {subscribe, ID}).
+subscribe(Id) ->
+    common:send_sync(directory_handler, {subscribe, Id}).
 
 init(WorkingDirectory) ->
     case file:read_file_info(WorkingDirectory) of
@@ -48,7 +50,7 @@ init(WorkingDirectory) ->
 
 init_fetch(WorkingDirectory) ->
     Files = new(),
-    Structure = fetch_files(Files, WorkingDirectory),
+    {Structure,_} = fetch_files(Files, WorkingDirectory,1),
     case ?debug of
 	true ->
 	    ?log_heavydebug(["Structure:\r\n",Structure]),
@@ -69,30 +71,31 @@ all_files(Files, Key, List) ->
     end.
 	    
 
-fetch_files(Files, Dir) ->
+fetch_files(Files, Dir,Id) ->
     Structure = structure:new(Dir),
     {ok, Content} = file:list_dir(Dir),
-    parse_content(Files, Structure,Dir++"/",Content).
+    parse_content(Files, Id, Structure, Dir++"/",Content).
 
-parse_content(_, Structure, _, []) ->
-    Structure;
-parse_content(Files, Structure, Dir, [Entity|Content]) ->
+parse_content(_, Id, Structure, _, []) ->
+    {Structure, Id};
+parse_content(Files, Id, Structure, Dir, [Entity|Content]) ->
     ?log_load(["File ",Dir++Entity," ..."]),
     case file:read_file_info(Dir++Entity) of
 	{error, Reason} ->
-	    ?log_error(["Could not read file info of ",Dir++Entity,", due to: ",Reason]),
-	    parse_content(Files, Structure, Dir, Content);
+	    ?log_error(["Could not read file info of ",Dir,Entity,", due to: ",Reason]),
+	    parse_content(Files, Id, Structure, Dir, Content);
 	{ok, FileInfo = #file_info{type=regular}} ->
-	    ID = add_file(Files, Dir, Entity, FileInfo),
-	    Structure1 = structure:add_file(Structure, ID, Entity),
-	    parse_content(Files, Structure1, Dir, Content);
-	{ok, #file_info{type=directory}} ->
-	    DirStructure = fetch_files(Files, Dir++Entity),
+	    add_file(Files, Id, Dir, Entity, FileInfo),
+	    Structure1 = structure:add_file(Structure, Id, Entity),
+	    parse_content(Files, Id+1, Structure1, Dir, Content);
+	{ok, FileInfo = #file_info{type=directory}} ->
+	    {DirStructure, Id1} = fetch_files(Files, Dir++Entity,Id+1),
+	    add_dir(Files, Id, Dir, Entity, DirStructure, FileInfo),
 	    Structure1 = structure:add_directory(Structure, Entity, DirStructure),
-	    parse_content(Files, Structure1, Dir, Content);
+	    parse_content(Files, Id1, Structure1, Dir, Content);
 	_ ->
 	    ?log_debug(["Wierd entity in content: ",Dir,Entity]),
-	    parse_content(Files, Structure, Dir, Content)
+	    parse_content(Files, Id, Structure, Dir, Content)
     end.
 
 
@@ -104,34 +107,36 @@ new() ->
 delete(Files) ->
     ets:delete(Files).
 
-add_file(Files, Dir, Name, Info) ->
-    ID = make_ref(),
-    File = #file{id=ID, dir=Dir, name=Name, info=Info},
-    ets:insert(Files, {ID, File}),
-    ID.
+add_file(Files, Id, Dir, Name, Info) ->
+    File = #file{id=Id, dir=Dir, name=Name, info=Info},
+    ets:insert(Files, {Id, File}).
 
-update_file(Files, ID, File) ->
-    ets:insert(Files, {ID, File}).
+add_dir(Files, Id, Dir, Name, Structure, Info) ->
+    Entry = #dir{id=Id, dir=Dir, name=Name, structure=Structure, info=Info},
+    ets:insert(Files, {Id, Entry}).
 
-lookup(Files, ID) ->
-    case ets:lookup(Files, ID) of
+update_file(Files, Id, File) ->
+    ets:insert(Files, {Id, File}).
+
+lookup(Files, Id) ->
+    case ets:lookup(Files, Id) of
 	[] -> undefined;
 	[File] -> File;
 	List -> hd(List)
     end.
 
-set_controller(Files, File = #file{id=ID}, Controller) ->
+set_controller(Files, File = #file{id=Id}, Controller) ->
     File1 = File#file{controller=Controller},
-    update_file(Files, ID, File1).
+    update_file(Files, Id, File1).
 
 
-get_controller(Files, ID) ->
-    case lookup(Files, ID) of
-	File = #file{dir=Dir, name=Name, controller=undefined} ->
+get_controller(Files, Id) ->
+    case lookup(Files, Id) of
+	{Id, File = #file{dir=Dir, name=Name, controller=undefined}} ->
 	    C = file_controller:start(Dir,Name),
 	    set_controller(Files, File, C),
 	    C;
-	#file{controller=C} -> C;
+	{Id, #file{controller=C}} -> C;
 	File ->
 	    ?log_error(["Wierd file in Files. File: ", File]),
 	    undefined
@@ -140,9 +145,9 @@ get_controller(Files, ID) ->
 recv_loop(Files, Structure) ->
     {Msg, Com} = common:receive_msg(unlimited),
     case Msg of
-	{subscribe, ID} ->
+	{subscribe, Id} ->
 	    Client = common:get_pid_from_com(Com),
-	    Controller = subscribe_to_file(Files, Client, ID),
+	    Controller = subscribe_to_file(Files, Client, Id),
 	    common:reply(Com, Controller),
 	    recv_loop(Files, Structure);
 	stop ->
@@ -154,6 +159,6 @@ recv_loop(Files, Structure) ->
 	    recv_loop(Files, Structure)
     end.
 
-subscribe_to_file(Files, Client, ID) ->
-    Controller = get_controller(Files, ID),
+subscribe_to_file(Files, Client, Id) ->
+    Controller = get_controller(Files, Id),
     file_controller:subscribe(Controller, Client).
