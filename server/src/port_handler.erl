@@ -41,7 +41,7 @@ loop(ListenSocket) ->
     listen_loop(ListenSocket).
 
 listen_loop(ListenSocket) ->
-    ?log_heavydebug(["Listening for new accepts ..."]),
+%    ?log_heavydebug(["Listening for new accepts ..."]),
     case gen_tcp:accept(ListenSocket, ?ACCEPT_TIMEOUT) of
 	{ok, Socket} ->
 	    ?log_heavydebug(["New socket connection accepted by listener."]),
@@ -55,7 +55,7 @@ failure_recovery(closed, _) ->
     ?log_info(["Socket closed, terminates listener in Port Handler"]),
     ok;
 failure_recovery(timeout, ListenSocket) ->
-    ?log_heavydebug(["gen_tcp:accept(ListenSocket) timedout, retries ..."]),
+%    ?log_heavydebug(["gen_tcp:accept(ListenSocket) timedout, retries ..."]),
     loop(ListenSocket);
 failure_recovery(system_limit, ListenSocket) ->
     cooldown(ListenSocket);
