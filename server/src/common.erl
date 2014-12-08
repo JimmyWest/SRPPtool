@@ -1,6 +1,6 @@
 -module(common).
 
--export([safe_register/2, mfa/3, send_singleton/3, safe_send_sync/2, safe_send/2, send_sync/2, send/2, response/2, response/1, response/0, receive_msg/1, reply/2]).
+-export([safe_register/2, mfa/3, send_singleton/3, safe_send_sync/2, safe_send/2, send_sync/2, send/2, response/2, response/1, response/0, receive_msg/1, get_pid_from_com/1, reply/2]).
 
 safe_register(Name, Pid) ->
     case erlang:whereis(Name) of
@@ -106,6 +106,9 @@ receive_msg(Timeout) ->
     after Timeout ->
 	    {timeout, undefined}
     end.
+
+get_pid_from_com({Pid,_}) ->
+    Pid.
 
 reply(undefined, _) -> ok;
 reply({Pid,Ref}, Msg) ->
