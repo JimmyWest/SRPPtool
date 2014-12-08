@@ -8,7 +8,7 @@
 %% ###############################
 %% Log Logger
 -define(debug, true).
--define(DEFAULT_MODULES, [client_handler,socket_handler]).
+-define(DEFAULT_MODULES, all).
 -define(DEFAULT_TYPES, all).
 
 % Logging structure
@@ -22,7 +22,7 @@
 % type = The type of log message.
 % msg = The log message it self.
 % eoc = The end of color.
--define(LOG_STRUCTURE, [boc,time,"-",type,":{",module,":",line,"}: ",msg,eoc]).
+-define(LOG_STRUCTURE, [boc,time,"-",type,":{",module,"(",pid,"):",line,"}: ",msg,eoc]).
 -define(DATE_SEP, "").
 -define(TIME_SEP, "").
 
@@ -75,8 +75,9 @@
 
 % File communication link
 -define(TCP_HEAD_FILE_OPEN, 100).
--define(TCP_HEAD_FILE_SUBSCRIBE, 101).
--define(TCP_HEAD_FILE_CONTENT, 110).
+-define(TCP_HEAD_FILE_SAVE, 101).
+-define(TCP_HEAD_FILE_SUBSCRIBE, 102).
+-define(TCP_HEAD_FILE_INFO, 110).
 -define(TCP_HEAD_LINE_GET, 111).
 -define(TCP_HEAD_LINE_UPDATE, 120).
 -define(TCP_HEAD_LINE_NEW, 121).
@@ -87,8 +88,10 @@
 -define(TCP_HEAD_OK, 200).
 -define(TCP_HEAD_ACK, 201).
 -define(TCP_HEAD_ACCEPT, 210).
--define(TCP_HEAD_REJECT, 211).
+-define(TCP_HEAD_FILE_KEY, 220).
 -define(TCP_HEAD_ERROR, 250).
+-define(TCP_HEAD_ERROR_NOID,251).
+-define(TCP_HEAD_REJECT, 252).
 
 % Unknown message
 -define(TCP_HEAD_UNKNOWN, 0).
