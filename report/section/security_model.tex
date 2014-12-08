@@ -1,0 +1,76 @@
+\section{The Security Model}
+
+The security model for this application covers the encryption of communication, handling of keys and sensitive data. 
+
+\subsection{Encryption and Decryption}
+
+The encryption is only used for communication between server and clients. Two types of encryption will be used single DES and triple DES. A single DES will be used during the client server connection. When a client has been connected, the encryption used is triple DES encryption with 64 bit keys. As the triple DES encryption supports a triple pair of keys. 
+
+\subsection{Use of Triple-DES}
+
+As Triple DES is using three keys for encryption, have we decided that the encryption will be based on the entities which are part of the communication. The server has its own key, the client has it own key and the files has its own key. This way are every communication link encrypted uniquely.
+
+\subsection{A Simple Use Case}
+
+Client A have file J open, when client B have file J open. The communication between client A to file J will be encrypted by using the server’s key, the client A’s key and the file J’s key, as this {ServerKey, ClinetAKey, FileJKey}. The communication between client B and file J will be encrypted by using the server’s key, the client B’s key and file J’s key, as this {ServerKey, ClinetBKey, FileJKey}. As long one key is different the whole encryption is different. 
+
+\subsection{The Keys}
+
+The keys use for the encryption of communication data is a three pair of keys. These keys are generated from password phrases to make the keys understandable by humans. This way can the keys easily be generated again and distributed through human communication. The actual keys used by the encryption a binary arrays, which a generated from the human known text strings. 
+
+The first key is the ServerKey, which are unique for the server. The ServerKey are made from a password phrase given by the user who starts the server application. This password phrase can then be given to developers which are going to Pair Programming. The developers enters this password phrase in the client, so that the client can connect to the server. 
+
+The client also has its own key, which are entered as a password phrase by the developer when starting the client. From this password phrase are the ClientKey generated, and distributed to the server upon connection. During the connection are only one key known by both the server and client which is the ServerKey. Therefore during the connection is only DES used and not Triple-DES in this connection message is the ClientKey included. So after the first message sent between the client and server is DES used, after this point are they using Triple-DES with two keys. 
+
+When a client has opened a file the FileKey are generated from a password phrase, this password phrase are the local path and filename, as this phrase are unique for each file. The communication, when open a file, are only using the ServerKey and ClientKey. The client sends request to open a file the server will respond with the generated FileKey and after this point all three keys are used in the communication encryption. 
+
+
+\subsection{Librarys used to encrypt data}
+
+The implementation in erlang using the module crypto:
+
+\begin{lstlisting}[frame=single]
+encrypt(PlainText, KeyRing) ->
+    Keys = dict:to_list(KeyRing),
+    IVec = create_key(?MAJOR_VERSION,8),
+    encrypt(PlainText, Keys, IVec).
+
+encrypt(PlainText, [{k1,K1}], IVec) ->
+    block_encrypt(des_cbc, K1, IVec, 
+                  PlainText);
+encrypt(PlainText, 
+        [{k1,K1},{k2,K2}], IVec) ->
+    block_encrypt(des3_cbc, [K1,K2,K1], 
+                  IVec, PlainText);
+encrypt(PlainText, 
+        [{k1, K1},{k2,K2},{k3,K3}], 
+        IVec) ->
+    block_encrypt(des3_cbc, [K1,K2,K3], 
+                  IVec, PlainText).
+    
+block_encrypt(Type, Key, IVec, 
+              PlainText) ->
+    crypto:block_encrypt(Type, Key, 
+    IVec, PlainText).
+\end{lstlisting}
+Decryption is the same 
+
+Encryption implementation in java using javax.crypto package:
+\begin{lstlisting}[frame=single]
+byte[] key = getKey();
+SecretKeySpec secretKeySpec = 
+    new SecretKeySpec(key, "DESede");
+IvParameterSpec iVec = 
+    new IvParameterSpec(new byte[8]);
+String type = "DESede/CBC/NoPadding";
+Cipher cipher = 
+    Cipher.getInstance(type);
+cipher.init(Cipher.ENCRYPT_MODE, 
+            secretKeySpec, getIVec());
+byte[] cipherText = 
+    cipher.doFinal(plainText);
+\end{lstlisting}
+
+\subsection{Secure File Handling}
+
+Files content are handled with care as it content can never been leaked, in any way. Therefore are all communication traffic encrypted. Then are all the files always in memory and never written to disk by the clients. The server is the only one responsibly to write file content to disk. This makes it secure to work from a client running on a borrowed machine, like a friends computer or a computer in an Internet café. 

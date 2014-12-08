@@ -1,0 +1,58 @@
+\documentclass[journal,a4paper]{IEEEtran}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{framed}
+\usepackage{graphics}
+
+\begin{document}
+\title{Concept development of a Secure Remote Pair Programming Tool}
+\author{Nathan Manzi, nmanzi@kth.se \\ Jimmy Westerlund, jimmywes@kth.se}
+\date{\today}
+\maketitle
+% The Abstract
+\begin{abstract}
+Remote Pair Programming(RPP) has received a significant attention among academic students and researchers. RPP is a collaborative method where two programmers or researchers work remotely and independently on their own computer, while sharing data for each other in real-time. The use of pair programming method is often used in an academic environment and companies where students or researchers uses this method to reinforce their team working on a given task in order to improve their productivity. However, there  exist some RPP tools that does not support secure communication and are recommended to be used over secured communication links or inside a secure environment. Therefore, in our study, we investigated a possible approach of a secured remote pair programming(SRPP) based on unsecured communication links. A security model approach have been proposed as a method used for this investigation. In order to establish a secured remote pair programming tool,  we have chosen  to use the server-client approach as useful way of understanding the RPP communication. For this project, a single and triple  Data encryption Standard(DES) has been used as encryption approach. Due to the time consumption, we were only able to create a system that can secure pair programming remotely even if the connection used is unsecured by letting the application encrypt and decrypt all data sent by the server and clients.
+\end{abstract}
+
+% The Keywords 
+\begin{IEEEkeywords}
+Pair Programming, Remote Pair Programming, Collaborative, DES, .
+\end{IEEEkeywords}
+
+\input{section/introduction}
+
+\input{section/background}
+
+\input{section/goal}
+
+\input{section/application}
+
+\input{section/security_model}
+
+\input{section/conclusion}
+
+\section{References}
+\begin{lstlisting}
+[1] http://ieeexplore.ieee.org/xpl/login.jsp?
+    tp=&arnumber=913816&url=%2Fiel5%2F7294%2F
+    19720%2F00913816 
+
+[2] http://drive.google.com
+. 
+[3] https://www.bth.se/fou/cuppsats.nsf/all/70
+    fee31810925915c1256d48001ef633/$file/PP_Ma
+    sterThesis_pt99jni.pdf
+
+[4] http://media.pragprog.com/titles/jkrp/intr
+    o.pdf
+
+[5] http://collaboration.csc.ncsu.edu/laurie/P
+    apers/XPAUDistributedP.pdf
+
+[6] http://arxiv.org/ftp/arxiv/papers/1003/100
+    3.4085.pdf
+\end{lstlisting}
+
+\include{appendix/apiprotocol}
+
+\end{document}
