@@ -1,3 +1,0 @@
-\subsection{Encryption and Decryption}
-
-The encryption is only used for communication between server and clients. Two types of encryption will be used single DES and triple DES. A single DES will be used during the client server connection. When a client has been connected, the encryption used is triple DES encryption with 64 bit keys. As the triple DES encryption supports a triple pair of keys. It makes possible to have unique key pairs for each communication link. For the main communication links, the key pair looks like this: { ServerKey, ClientKey, ServerKey }. As for each file communication link, the key pair will look like this: { ServerKey, ClientKey, FileKey }. Therefore, it makes each encryption unique for each communication. 
