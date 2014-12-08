@@ -33,27 +33,25 @@ init_recv_loop(Socket) ->
 
 init_handle_socket_message(Socket, Msg) ->
     case Msg of
-	{openfile, ID} ->
-	    openfile(Socket, ID);
+	{openfile, Id, FileId} ->
+	    openfile(Socket, Id, FileId);
 	Wierd ->
 	    ?log_wierd([Wierd]),
-	    ANSWER = "This is a test!",
-	    gen_tcp:send(Socket,"HTTP/1.1 200 OK\r\nContent-Length: "++integer_to_list(length(ANSWER))++"\r\n\r\n"++ANSWER),
 	    init_recv_loop(Socket)
     end.
 
-openfile(Socket, ID) ->
-    case directory_handler:subscribe(ID) of
+openfile(Socket, Id, FileId) ->
+    case directory_handler:subscribe(FileId) of
 	{error, Reason} ->
-	    ?log_error(["Can't subscribe to file(",ID,"), due to: ",Reason]),
-	    socket_handler:response(Socket, error, "Can't open file. Retry again ..."),
+	    ?log_error(["Can't subscribe to file(",FileId,"), due to: ",Reason]),
+	    socket_handler:response(Socket, error, {Id, "Can't open file. Retry again ..."}),
 	    init_recv_loop(Socket);
 	Controller ->
-	    recv_loop(Socket, Controller, ID)
+	    recv_loop(Socket, Controller, FileId)
     end.
 
 recv_loop(Socket, Controller, ID) ->
-    {Msg, _} = common:receive_msg(unlimitied),
+    {Msg, _} = common:receive_msg(unlimited),
     ?log_debug(["Got msg: ",Msg]),
     case Msg of
 	{socket, Msg} ->
@@ -61,7 +59,7 @@ recv_loop(Socket, Controller, ID) ->
 	    recv_loop(Socket, Controller, ID);
 	{socket, closed} ->
 	    ?log_info(["Client handler terminate as socket is closed"]),
-	    file_contorller:unsubscribe(Controller, self()),
+	    file_controller:unsubscribe(Controller, self()),
 	    ok;
 	{update, Change} ->
 	    socket_handler:response(Socket, update, Change),
