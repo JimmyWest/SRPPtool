@@ -52,19 +52,19 @@ parse_tcp_data(Data) ->
 	    [{connect, ClientKey}, {response, accept, {Id, "OK"}}];
 	<<?TCP_HEAD_DISCONNECT:8, Id:8, _/binary>> ->
 	    [{client,disconnect},close];
-	<<?TCP_HEAD_FOLDER:8, Id:8, _:8, FolderID:32, _/binary>> ->
-	    [{client, {folder, Id, FolderID}}];
-	<<?TCP_HEAD_FILE_OPEN:8, Id:8, _:8, FileID:32, _/binary>> ->
-	    [{client, {open, Id, FileID}}];
-	<<?TCP_HEAD_FILE_SUBSCRIBE:8, Id:8, _:8, FileID:32, _/binary>> ->
-	    [{client, {subscribe, Id, FileID}}];
-	<<?TCP_HEAD_FILE_CONTENT:8, Id:8, _/binary>> ->
+	<<?TCP_HEAD_FOLDER:8, Id:8, 32:8, FolderId:32, _/binary>> ->
+	    [{client, {folder, Id, FolderId}}];
+	<<?TCP_HEAD_FILE_OPEN:8, Id:8, 4:8, FileId:32, _/binary>> ->
+	    [{client, {openfile, Id, FileId}}];
+	<<?TCP_HEAD_FILE_SUBSCRIBE:8, Id:8, 32:8, FileId:32, _/binary>> ->
+	    [{client, {subscribe, Id, FileId}}];
+	<<?TCP_HEAD_FILE_INFO:8, Id:8, _/binary>> ->
 	    [{client, {content, Id}}];
 	<<?TCP_HEAD_LINE_UPDATE:8, Id:8, Length:8, LineNum:32, Line:Length/binary, _/binary>> ->
 	    [{client, {update, Id, LineNum, Line}}];
 	<<?TCP_HEAD_LINE_NEW:8, Id:8, Length:8, LineNum:32, Line:Length/binary, _/binary>> ->
 	    [{client, {new_line, Id, LineNum, Line}}];
-	<<?TCP_HEAD_LINE_REMOVE:8, Id:8, _:8, LineNum:32, _/binary>> ->
+	<<?TCP_HEAD_LINE_REMOVE:8, Id:8, 32:8, LineNum:32, _/binary>> ->
 	    [{client, {remove_line, Id, LineNum}}]; 
 	_ ->
 	    ?log_wierd(["Unknown tcp message received"]),
