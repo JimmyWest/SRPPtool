@@ -5,7 +5,7 @@
 
 -include("config.hrl").
 
--record(state, {file, subscribers=[]}).
+-record(state, {file, key, subscribers=[]}).
 
 start(Path,Filename) ->
     spawn(fun() -> init(Path,Filename) end).
@@ -17,7 +17,8 @@ init(Path, Filename) ->
     ?log_start(["Controller for: ",Path,Filename]),
     File = file_data:open(Path,Filename),
     ?log_heavydebug(["File path: (",Path,"\r\nFile:",File,")"]),
-    State = #state{file=File},
+    Key = crypt:create_key(Path++Filename,8),
+    State = #state{file=File, key=Key},
     recv_loop(State).
 
 %% ### External API
