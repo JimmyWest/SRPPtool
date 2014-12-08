@@ -1,7 +1,9 @@
 -module(file_controller).
 
 -export([start/2, stop/1]).
--export([subscribe/2, add_line/3, update_line/3, remove_line/2, get_line/2, save/1, close/1]).
+-export([subscribe/2, unsubscribe/2, add_line/3, update_line/3, remove_line/2, get_line/2, save/1, close/1]).
+
+-include("config.hrl").
 
 -record(state, {file, subscribers=[]}).
 
@@ -12,7 +14,9 @@ stop(Pid) ->
     send_msg(Pid, stop).
 
 init(Path, Filename) ->
+    ?log_start(["Controller for: ",Path,Filename]),
     File = file_data:open(Path,Filename),
+    ?log_heavydebug(["File path: (",Path,"\r\nFile:",File,")"]),
     State = #state{file=File},
     recv_loop(State).
 
@@ -20,6 +24,9 @@ init(Path, Filename) ->
 
 subscribe(Pid, Client) ->
     send_msg(Pid, {subscribe, Client}).
+
+unsubscribe(Pid, Client) ->
+    send_msg(Pid, {unsubscribe, Client}).
 
 add_line(Pid, N, Line) ->
     send_msg(Pid, {add_line, N, Line}).
@@ -50,6 +57,10 @@ recv_loop(State) ->
 	{subscribe, Client} ->
 	    State1 = add_subscriber(State, Client),
 	    common:reply(Com, self()),
+	    recv_loop(State1);
+	{unsubscribe, Client} ->
+	    State1 = remove_subscriber(State, Client),
+	    common:reply(Com, ok),
 	    recv_loop(State1);
 	{add_line, N, Line} ->
 	    File = file_data:add_line(Line,N,State#state.file),
@@ -83,3 +94,7 @@ recv_loop(State) ->
 add_subscriber(State = #state{subscribers=Subscribers}, Client) ->
     %% send file copy to new subcriber.
     State#state{subscribers=[Client|Subscribers]}.
+
+remove_subscriber(State = #state{subscribers=Subscribers}, Client) ->
+    Subscribers1 = lists:delete(Client, Subscribers),
+    State#state{subscribers=Subscribers1}.
