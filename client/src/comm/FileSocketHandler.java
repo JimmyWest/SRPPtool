@@ -13,9 +13,8 @@ public class FileSocketHandler extends SocketHandler {
 
     private FileSocketListener fileSocketListener;
 
-    public FileSocketHandler(String host, int port, String serverPhrase, String clientPhrase, int fileId) throws IOException {
+    public FileSocketHandler(String host, int port, String serverPhrase, String clientPhrase) throws IOException {
         super(host, port, serverPhrase, clientPhrase);
-        openFile(fileId);
     }
 
     public void setFileSocketListener(FileSocketListener fileSocketListener) {
@@ -58,7 +57,7 @@ public class FileSocketHandler extends SocketHandler {
 
     private void handleFileInfoMessage(FileInfo message){
         if (fileSocketListener != null)
-            fileSocketListener.updateInfo(message);
+            fileSocketListener.updateInfo(message.getFileInfo());
     }
 
     private void handleLineUpdateMessage(LineUpdate message) {
@@ -68,7 +67,7 @@ public class FileSocketHandler extends SocketHandler {
 
     private void handleLineNew(LineNew message) {
         if (fileSocketListener != null)
-            fileSocketListener.addLineAfter(message.getPos());
+            fileSocketListener.addLine(message.getLineNumber());
     }
 
     private void handleLineRemoveMessage(LineRemove message) {
