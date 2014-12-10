@@ -15,12 +15,8 @@ public class LineUpdate extends Message{
 
     public LineUpdate(byte id, byte[] data) {
         super(id, MessageType.FILE_LINE_UPDATE, data);
-        for(int i=0;i<4;i++){
-            this.lineNumber <<= 8;
-            this.lineNumber += data[i];
-        }
-        byte[] line = Arrays.copyOfRange(data, 4, data.length);
-        this.line = new String(line);
+        lineNumber = readInt();
+        line = readString();
     }
 
     public int getLineNumber() {

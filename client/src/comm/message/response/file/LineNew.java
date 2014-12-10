@@ -8,17 +8,15 @@ import comm.message.MessageType;
  */
 public class LineNew extends Message {
 
-    private int after = 0;
+    private int lineNumber = 0;
 
     public LineNew(byte id, byte[] data) {
         super(id, MessageType.FILE_LINE_NEW, data);
-        for(int i=0;i<4;i++) {
-            after <<= 8;
-            after += data[i];
-        }
+        lineNumber = readInt();
     }
 
-    public int getPos() {
-        return after;
+    public int getLineNumber() {
+        return lineNumber;
     }
+
 }

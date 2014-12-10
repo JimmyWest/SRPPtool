@@ -11,10 +11,7 @@ public class LineRemove extends Message {
     private int lineNumber;
     public LineRemove(byte id, byte[] data) {
         super(id, MessageType.FILE_LINE_REMOVE, data);
-        for(int i=0;i<4;i++) {
-            lineNumber <<= 8;
-            lineNumber += data[i];
-        }
+        lineNumber = readInt();
     }
 
     public int getLineNumber() {

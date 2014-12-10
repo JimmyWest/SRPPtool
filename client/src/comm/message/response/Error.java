@@ -13,7 +13,7 @@ public class Error extends Message {
     private String error;
     public Error(byte id, byte[] data) {
         super(id, MessageType.ERROR, data);
-        error = Arrays.toString(data);
+        error = readString();
     }
 
     public String getError() {

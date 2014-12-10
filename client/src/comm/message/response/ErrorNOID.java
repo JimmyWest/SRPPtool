@@ -13,7 +13,7 @@ public class ErrorNOID extends Message {
     private String error;
     public ErrorNOID(byte[] data) {
         super(MessageType.ERROR, data);
-        error = Arrays.toString(data);
+        error = readString();
     }
 
     public String getError() {

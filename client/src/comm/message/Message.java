@@ -12,6 +12,7 @@ public class Message {
     private byte id;
     private byte length;
     private byte[] data;
+    private int readPointer = 0;
 
     public Message(MessageType type) { this(type,null); }
     public Message(MessageType type, byte[] data) {
@@ -59,6 +60,40 @@ public class Message {
         msg[2] = length;
         System.arraycopy(data,0,msg,3,length);
         return msg;
+    }
+
+    protected int readByte() {
+        byte b = data[readPointer];
+        readPointer++;
+        return b;
+    }
+
+    protected byte[] readBytes(int length) {
+        byte[] bytes = Arrays.copyOfRange(data,readPointer,readPointer + length);
+        readPointer += length;
+        return bytes;
+    }
+
+    protected int readInt(){
+        int num = 0;
+        for(int i=0; i<4; i++) {
+            num <<= 8;
+            num += data[readPointer];
+            readPointer++;
+        }
+        return num;
+    }
+
+    protected String readString() {
+        byte[] bytes = Arrays.copyOfRange(data, readPointer, data.length);
+        readPointer = data.length;
+        return new String(bytes);
+    }
+
+    protected String readString(int length) {
+        byte[] bytes = Arrays.copyOfRange(data,readPointer,readPointer + length);
+        readPointer += length;
+        return new String(bytes);
     }
 
     @Override
